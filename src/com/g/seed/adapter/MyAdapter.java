@@ -30,8 +30,8 @@ public class MyAdapter<BeanType> extends BaseAdapter {
 		this.beanList = beans;
 		try {
 			constructor = viewClazz.getConstructor(Context.class);
-		} catch (NoSuchMethodException eccc) {
-			throw new RuntimeException(eccc);
+		} catch (NoSuchMethodException ecccccc) {
+			throw new RuntimeException(ecccccc);
 		}
 	}
 	
