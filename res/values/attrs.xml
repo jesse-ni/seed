@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+
+    <declare-styleable name="GTextAble">
+        <attr name="expression" format="reference|string" />
+    </declare-styleable>
+
+    <declare-styleable name="CheckAble">
+        <attr name="err" format="reference|string" />
+        <attr name="rex" format="reference|string" />
+    </declare-styleable>
+    
+    <declare-styleable name="FormElement">
+        <attr name="name" format="reference|string" />
+        <attr name="encrypt " format="string" />
+        <attr name="optional " format="boolean" />
+    </declare-styleable>
+
+</resources>
