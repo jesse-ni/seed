@@ -19,7 +19,7 @@ import android.widget.BaseAdapter;
  * @ClassName: Adapter
  * @author zhigeng.ni
  * @date 2015年9月8日 上午11:12:55
- * @Description: TODO (描述作用aaaaaa)
+ * @Description: TODO (描述作用)
  * 				
  */
 public class MyAdapter<BeanType> extends BaseAdapter {
@@ -30,8 +30,8 @@ public class MyAdapter<BeanType> extends BaseAdapter {
 		this.beanList = beans;
 		try {
 			constructor = viewClazz.getConstructor(Context.class);
-		} catch (NoSuchMethodException ecccccc) {
-			throw new RuntimeException(ecccccc);
+		} catch (NoSuchMethodException e) {
+			throw new RuntimeException(e);
 		}
 	}
 	
