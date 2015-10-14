@@ -145,7 +145,7 @@ public class POTool
 			for (String unit : params.keySet()) {
 				result = result + "&" + unit + "=" + params.get(unit);
 			}
-			result.replaceFirst("&", "?");
+			result = result.replaceFirst("&", "?");
 		}
 		return result;
 	}
