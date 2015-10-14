@@ -12,6 +12,7 @@ import org.apache.http.client.ClientProtocolException;
 import org.apache.http.client.entity.UrlEncodedFormEntity;
 import org.apache.http.client.methods.HttpGet;
 import org.apache.http.client.methods.HttpPost;
+import org.apache.http.client.methods.HttpRequestBase;
 import org.apache.http.client.params.HttpClientParams;
 import org.apache.http.impl.client.DefaultHttpClient;
 import org.apache.http.params.BasicHttpParams;
@@ -65,6 +66,10 @@ public class HttpHelper {
 	
 	public HttpResponse get(String action, String params) throws ClientProtocolException, IOException {
 		return client.execute(new HttpGet(this.location + action + params));
+	}
+
+	public String execute(HttpRequestBase requestBase) throws ClientProtocolException, IOException, ParseException, StatusCodeException {
+		return new StringHttpResultProcessor(client.execute(requestBase)).exe();
 	}
 	
 	public String postString(String action, Object... po) throws ClientProtocolException, IOException, StatusCodeException {
