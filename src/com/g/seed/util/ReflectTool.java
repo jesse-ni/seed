@@ -8,9 +8,9 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import android.util.Log;
-
 import com.g.seed.web.exception.ReflectToolException;
+
+import android.util.Log;
 
 /**
  * @ClassName: ReflectTool
@@ -21,7 +21,7 @@ import com.g.seed.web.exception.ReflectToolException;
  */
 public class ReflectTool {
 	private List<IFieldFilter> filters = new ArrayList<IFieldFilter>();
-	private List<IFieldFilter> tempfilters = new ArrayList<IFieldFilter>();
+//	private List<IFieldFilter> tempfilters = new ArrayList<IFieldFilter>();
 	private List<IClazzFilter> clazzFilters = new ArrayList<IClazzFilter>();
 	private static final String TAG = ReflectTool.class.getName();
 	
@@ -30,8 +30,14 @@ public class ReflectTool {
 	public ReflectTool(IFieldFilter... f) {
 		this.filters.addAll(Arrays.asList(f));
 	}
+
+	public ReflectTool(List<IFieldFilter> f) {
+		this.filters.addAll(f);
+	}
 	
-	public void catchAttr(Object obj) {
+	public void catchAttr(Object obj, IFieldFilter... f) {
+		if (obj == null)
+			throw new ReflectToolException("the object want to filtered can not be null");
 		for (Class<?> clazz = obj.getClass(); checkClazz(clazz); clazz = clazz.getSuperclass()) {
 			Field[] fields = clazz.getDeclaredFields();
 			for (Field field : fields) {
@@ -40,12 +46,20 @@ public class ReflectTool {
 					Object value = field.get(obj);
 					FieldFiltrateInfo fi = new FieldFiltrateInfo(clazz, obj, field, field.getName(), value);
 					if (fieldFiltrate(fi, filters))
-						fieldFiltrate(fi, tempfilters);
-				}  catch (Exception e) {
+						fieldFiltrate(fi, Arrays.asList(f));
+				} catch (Exception e) {
 					Log.e(TAG, "catchAttr fail: ", e);
 				}
 			}
 		}
+	}
+	
+	public List<IFieldFilter> getFilters() {
+		return filters;
+	}
+	
+	public void setFilters(List<IFieldFilter> filters) {
+		this.filters = filters;
 	}
 	
 	private boolean checkClazz(Class<?> clazz) {
@@ -76,19 +90,12 @@ public class ReflectTool {
 		return true;
 	}
 	
-	public void catchAttr(Object obj, IFieldFilter... f) {
-		if (obj == null)
-			throw new ReflectToolException("the object want to filtered can not be null");
-		this.tempfilters.addAll(Arrays.asList(f));
-		catchAttr(obj);
-	}
-	
 	public void catchMethod(Object obj, IMethodFilter... filters) {
 		for (Class<?> clazz = obj.getClass(); checkClazz(clazz); clazz = clazz.getSuperclass()) {
 			Method[] methods = clazz.getDeclaredMethods();
 			for (Method method : methods) {
 				method.setAccessible(true);
-				for(IMethodFilter filter:filters){
+				for (IMethodFilter filter : filters) {
 					try {
 						if (!filter.exe(new MethodFiltrateInfo(method))) {
 							break;

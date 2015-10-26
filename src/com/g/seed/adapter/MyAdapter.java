@@ -8,6 +8,7 @@ import java.util.List;
 
 import com.g.seed.autowired.Params;
 import com.g.seed.autowired.ViewManager;
+import com.g.seed.util.Util;
 import com.g.seed.view.IUpdateAble;
 
 import android.content.Context;
@@ -33,6 +34,7 @@ public class MyAdapter<BeanType> extends BaseAdapter {
 		} catch (NoSuchMethodException e) {
 			throw new RuntimeException(e);
 		}
+		checkType();
 	}
 	
 	public MyAdapter(Context context, List<BeanType> beans, int layoutID) {
@@ -40,12 +42,19 @@ public class MyAdapter<BeanType> extends BaseAdapter {
 		this.context = context;
 		this.beanList = beans;
 		this.layoutID = layoutID;
+		checkType();
 	}
+	
 	
 	private Context context;
 	private List<BeanType> beanList;
 	private Constructor<? extends View> constructor;
 	private int layoutID;
+	private boolean isPrimitive = false;
+	
+	private void checkType(){
+		isPrimitive = Util.isPrimitive(beanList.get(0).getClass());
+	}
 	
 	@Override
 	public int getCount() {
@@ -67,7 +76,7 @@ public class MyAdapter<BeanType> extends BaseAdapter {
 	public View getView(int position, View convertView, ViewGroup parent) {
 		final BeanType bean = beanList.get(position);
 		if (convertView != null) {
-			ViewManager.dataChange(convertView, bean);
+			ViewManager.dataChange(convertView, bean, isPrimitive);
 			if (convertView instanceof IUpdateAble) {
 				((IUpdateAble<BeanType>) convertView).update(bean);
 			}
@@ -78,14 +87,24 @@ public class MyAdapter<BeanType> extends BaseAdapter {
 	
 	private View createView(final BeanType bean) {
 		try {
-			return new ViewManager(constructor.newInstance(context), new Params(bean)).flate();
+			return new ViewManager(constructor.newInstance(context), createParams(bean)).flate();
 		} catch (Exception e) {
 			throw new RuntimeException(e);
 		}
 	}
 	
 	private View createViewFromLayoutID(final BeanType bean) {
-		return new ViewManager(context, layoutID, new Params(bean)).create();
+		return new ViewManager(context, layoutID, createParams(bean)).create();
+	}
+
+	private Params createParams(final BeanType bean) {
+		final Params params = new Params();
+		if (isPrimitive) {
+			params.put(Params.primitiveKey, bean);
+		} else {
+			params.setBean(bean);
+		}
+		return params;
 	}
 	
 	/**

@@ -1,18 +1,17 @@
 package com.g.seed.autowired;
 
-import android.os.Bundle;
-import android.util.Log;
-
 import java.lang.reflect.Field;
-import java.lang.reflect.InvocationTargetException;
-import java.lang.reflect.Method;
 import java.util.HashMap;
 import java.util.Map;
+
+import android.os.Bundle;
+import android.util.Log;
 
 public class Params extends HashMap<String, Object>
 {
 	private static final long serialVersionUID = -6502587425187963888L;
 	public static final String beanKey = "bean";
+	public static final String primitiveKey = "data";
 	
 	public Params(){
 	
@@ -43,30 +42,17 @@ public class Params extends HashMap<String, Object>
 		return result;
 	}
 	
-	@SuppressWarnings("unchecked")
 	public void putAll(Bundle bundle)
 	{
 		if (bundle == null)
 			return;	
 		try {
-			Class<?> clazz = bundle.getClass();
-			Method methodUnparcel = clazz.getDeclaredMethod("unparcel");
-			methodUnparcel.setAccessible(true);
-			methodUnparcel.invoke(bundle);
-			Field declaredField = clazz.getDeclaredField("mMap");
-			declaredField.setAccessible(true);
-			putAll((Map<String, Object>)declaredField.get(bundle));
-		} catch (IllegalArgumentException e) {
+			for(String key:bundle.keySet()){
+				put(key, bundle.get(key));
+			}
+		}  catch (Exception e) {
 			e.printStackTrace();
-		} catch (IllegalAccessException e) {
-			e.printStackTrace();
-		} catch (NoSuchFieldException e) {
-			e.printStackTrace();
-		} catch (InvocationTargetException e) {
-			e.printStackTrace();
-		} catch (NoSuchMethodException e) {
-			e.printStackTrace();
-		}
+		} 
 	}
 	
 	public void setBean(Object bean) {

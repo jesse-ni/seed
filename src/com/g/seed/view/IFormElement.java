@@ -20,4 +20,8 @@ public interface IFormElement extends ICheckAble {
 	NameValuePair build();
 
 	String getName();
+	
+	void setFocusable(boolean focusable);
+	
+	boolean requestFocus();
 }

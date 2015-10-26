@@ -31,6 +31,9 @@ public class GEditText extends EditText implements IFormElement {
 		this.err = typedArrayCheckAble.getString(R.styleable.CheckAble_err);
 		this.rex = typedArrayCheckAble.getString(R.styleable.CheckAble_rex);
 		typedArrayCheckAble.recycle();
+		final TypedArray typedArrayFormElement = getContext().obtainStyledAttributes(attrs, R.styleable.FormElement);
+		this.name = typedArrayFormElement.getString(R.styleable.FormElement_name);
+		typedArrayFormElement.recycle();
 	}
 	
 	public GEditText(Context context) {
@@ -39,6 +42,7 @@ public class GEditText extends EditText implements IFormElement {
 	
 	private String err;
 	private String rex;
+	private String name;
 	
 	@Override
 	protected void onFinishInflate() {
@@ -76,11 +80,11 @@ public class GEditText extends EditText implements IFormElement {
 
 	@Override
 	public NameValuePair build() {
-		return null;
+		throw new RuntimeException("未实现");
 	}
 
 	@Override
 	public String getName() {
-		return null;
+		return name;
 	}
 }

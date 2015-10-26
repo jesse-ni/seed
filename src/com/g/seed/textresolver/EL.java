@@ -1,17 +1,20 @@
 package com.g.seed.textresolver;
 
+import java.text.SimpleDateFormat;
+import java.util.Date;
+
 import com.g.seed.autowired.Params;
 import com.g.seed.util.MRTXT;
-
+import android.annotation.SuppressLint;
 import android.util.Log;
+import bsh.EvalError;
 
-public class EL
-{
+public class EL {
 	private final String begin = "${";
 	private final String end = "}";
 	private final GInterpreter interpreter;
 	
-	public EL(Params params){
+	public EL(Params params) {
 		this.interpreter = GInterpreter.getInstance(params);
 		setParams(params);
 	}
@@ -20,8 +23,7 @@ public class EL
 		this(new Params(obj));
 	}
 	
-	private String el(String str)
-	{
+	private String el(String str) {
 		int beginIndex = str.indexOf(begin);
 		if (beginIndex == -1)
 			return str;
@@ -39,29 +41,49 @@ public class EL
 	}
 	
 	public Object analyze2(String tagContent) {
-		String[] c;
-		try {
-			c = tagContent.split("~:");
-			if (c.length > 2)
-				throw new RuntimeException("EL Exception");
-			Object value = this.interpreter.eval(c[0]);
-			if (c.length == 1)
-				return ((value == null) ? "null" : value);
-			return analyze3(value, c[1]);
-		} catch (Exception e) {
-			Log.e(super.getClass().getName(), e.getMessage());
-		}
-		return null;
+		String[] c = tagContent.split("~:");
+		if (c.length > 2)
+			throw new RuntimeException("EL Exception");
+		Object value = eval(c);
+		if (c.length == 1)
+			return String.valueOf(value);
+		return analyze3(value, c[1]);
 	}
 	
+	private Object eval(String[] c) {
+		try {
+			return this.interpreter.eval(c[0]);
+		} catch (EvalError e) {
+			Log.e("EL", "eval fail", e);
+			return null;
+		}
+	}
+	
+	@SuppressLint("SimpleDateFormat")
 	public Object analyze3(Object value, String op) {
 		if (value == null)
-			return String.valueOf(value);
+			return "";
+		if (op.endsWith("#")) {
+			op = op.substring(0, op.length() - 1);
+			if (value instanceof Number && value.toString().equals("0")) { return ""; }
+		}
 		if (op.matches("[0-9]+"))
 			return MRTXT.holdC(value, Integer.parseInt(op));
 		if (op.equals("P"))
 			return MRTXT.phoneFormat(value.toString());
-		
+		if (op.equals("nullable"))
+			return value == null ? "" : value;
+		if (op.startsWith("Date:")) {
+			String v = value.toString();
+			if (v.length() < 13) {
+				for (int i = v.length(); i < 13; i++) {
+					v += "0";
+				}
+			}
+			Date date = new Date(Long.parseLong(v));
+			String format = op.substring("Date:".length());
+			return new SimpleDateFormat(format).format(date);
+		}
 		return value;
 	}
 	
@@ -69,7 +91,7 @@ public class EL
 		return tag.substring(begin.length(), tag.length() - 1);
 	}
 	
-	public void setParams(Params params){
+	public void setParams(Params params) {
 		this.interpreter.setParams(params);
 	}
 	

@@ -11,6 +11,10 @@ import org.apache.http.client.ClientProtocolException;
 import com.g.seed.util.LOGTAG;
 import com.g.seed.web.exception.StatusCodeException;
 import com.g.seed.web.result.Result;
+import com.google.gson.Gson;
+import com.google.gson.GsonBuilder;
+import com.google.gson.JsonElement;
+import com.google.gson.JsonParser;
 
 import android.os.AsyncTask;
 import android.util.Log;
@@ -32,7 +36,7 @@ public abstract class MyAsyncTask extends AsyncTask<String, Integer, Result> {
 		l.before(this);
 	}
 	
-	public void cancel(){
+	public void cancel() {
 		l.after(null);
 		cancel(true);
 		Log.i(LOGTAG.RequestInfo, "cancel--" + missionName);
@@ -58,14 +62,18 @@ public abstract class MyAsyncTask extends AsyncTask<String, Integer, Result> {
 			Log.i(LOGTAG.RequestInfo, "request--" + missionName);
 			Result result = l.onResponse(doRequest());
 			Log.i(LOGTAG.RequestInfo, "response--" + missionName);
-			Log.i(LOGTAG.RequestInfo, result.printProtype());
+			Gson gson = new GsonBuilder().setPrettyPrinting().create();
+			JsonParser jp = new JsonParser();
+			JsonElement je = jp.parse(result.printProtype());
+			String prettyJsonStr = gson.toJson(je);
+			Log.i(LOGTAG.RequestInfo, prettyJsonStr);
 			return result;
 		} catch (Exception e) {
 			StringWriter sw = new StringWriter();
-	        PrintWriter pw = new PrintWriter(sw);
-	        e.printStackTrace(pw);
-	        pw.flush();
-	        sw.flush();
+			PrintWriter pw = new PrintWriter(sw);
+			e.printStackTrace(pw);
+			pw.flush();
+			sw.flush();
 			Log.e(LOGTAG.RequestInfo, "exception--" + missionName + "\n" + sw.toString());
 			return new Result(e);
 		}
@@ -77,7 +85,7 @@ public abstract class MyAsyncTask extends AsyncTask<String, Integer, Result> {
 		this.l = l;
 	}
 	
-	public String getMissionName(){
+	public String getMissionName() {
 		return missionName;
 	}
 	

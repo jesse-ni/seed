@@ -13,6 +13,9 @@ import com.g.seed.textresolver.GText;
 import com.g.seed.view.IExtendedAttributeOwner;
 import com.g.seed.view.IFormElement;
 import com.g.seed.view.IGTextAble;
+import com.g.seed.web.service.IForm;
+import com.g.seed.web.service.Service;
+import com.g.seed.web.task.MyAsyncTask.AsyncResultListener;
 
 import android.app.Activity;
 import android.content.Context;
@@ -26,20 +29,19 @@ public class ViewManager {
 	private GIntent gintent;
 	private EL el;
 	
-	
 	/**
 	 * bean 的渲染后的spanned缓存。
 	 * 此缓存是针对于每一个bean进行缓存而不是针对GTextAble，GTextAble只是提供Expression渲染模板。
-	 * 使用缓存时需要以bean作为键来获取缓存，取到缓存后再依次从ViewGroup中的GTextAble取得cacheID作为键从缓存中获取对应的spanned。
-	 * */
+	 * 使用缓存时需要以bean作为键来获取缓存，
+	 * 取到缓存后再依次从ViewGroup中的GTextAble取得cacheID作为键从缓存中获取对应的spanned。
+	 */
 	/* package */ static WeakHashMap<Object, HashMap<Object, TextAbleR>> textAbleCache = new WeakHashMap<Object, HashMap<Object, TextAbleR>>();
 	
-	/** 
-	 * 缓存ID。
-	 * 在GTextAble被创建时便会给它添加一个动态属性”缓存ID“，
+	/**
+	 * 缓存ID。 在GTextAble被创建时便会给它添加一个动态属性”缓存ID“，
 	 * 缓存ID在其所处的容器中是唯一的，而相对于其容器的其他同类对象中的另一个自己则是一样的。
 	 * GTextAble的内容缓存以此ID做为键，在usecache的时候从GTextAble中取得动态属性”缓存ID“，再以此ID取得缓存的内容。
-	 * */
+	 */
 	public static final String cacheID = "cacheID";
 	
 	public ViewManager() {}
@@ -112,11 +114,15 @@ public class ViewManager {
 	}
 	
 	public static void dataChange(View view, Object bean) {
+		dataChange(view, bean, false);
+	}
+	
+	public static void dataChange(View view, Object bean, boolean isPrimary) {
 		//		new Injector(view, bean).injectData();
 		if (textAbleCache.containsKey(bean)) {
 			usecache(view, bean);
 		} else {
-			jiexiAndCache(view, bean);
+			jiexiAndCache(view, bean, isPrimary);
 		}
 	}
 	
@@ -128,10 +134,16 @@ public class ViewManager {
 		}
 	}
 	
-	private static void jiexiAndCache(View view, Object bean) {
+	private static void jiexiAndCache(View view, Object bean, boolean isPrimary) {
 		HashMap<Object, TextAbleR> map = new HashMap<Object, TextAbleR>();
 		for (IGTextAble textAble : getExtendedAttribute(view).getTextAbles()) {
-			final String eled = new EL(bean).exe(textAble.getExpression());
+			Params params = new Params();
+			if (isPrimary) {
+				params.put(Params.primitiveKey, bean);
+			} else {
+				params.setBean(bean);
+			}
+			final String eled = new EL(params).exe(textAble.getExpression());
 			final Spanned spanned = new GText(eled).exe();
 			textAble.setText(spanned);
 			map.put(textAble.getDA(cacheID), new TextAbleR(spanned, textAble.getExpression()));
@@ -152,14 +164,31 @@ public class ViewManager {
 	}
 	
 	public static boolean formCheck(View view) {
+		boolean result = true;
 		for (IFormElement formElement : getExtendedAttribute(view).getFormElements()) {
-			if (!formElement.check()) { return false; }
+			if (!formElement.check()) {
+				if (result == true) {
+					formElement.setFocusable(true);
+					formElement.requestFocus();
+				}
+				result = false;
+			}
 		}
-		return true;
+		return result;
 	}
 	
-	public static void buildPO(Activity activity, Object po) {
-		buildPO(getRootView(activity), po);
+	public static void submit(View view, IForm form, final AsyncResultListener l) {
+		if (buildPO(view, form)) {
+			Service.getInstance().asyncPost(form.getAction(), form, l);
+		}
+	}
+
+	public static void submit(IForm form, final AsyncResultListener l) {
+		Service.getInstance().asyncPost(form.getAction(), form, l);
+	}
+	
+	public static boolean buildPO(Activity activity, Object po) {
+		return buildPO(getRootView(activity), po);
 	}
 	
 	public static Object buildPO(Activity activity, Class<?> clazz) {
@@ -170,7 +199,7 @@ public class ViewManager {
 		return buildPairs(getRootView(activity));
 	}
 	
-	private static View getRootView(Activity activity) {
+	public static View getRootView(Activity activity) {
 		return ((ViewGroup) activity.findViewById(android.R.id.content)).getChildAt(0);
 	}
 	
@@ -193,14 +222,23 @@ public class ViewManager {
 		return result;
 	}
 	
-	public static void buildPO(View view, Object po) {
+	public static boolean buildPO(View view, Object po) {
+		boolean result = true;
 		try {
 			Class<?> clazz = po.getClass();
 			for (IFormElement formElement : getExtendedAttribute(view).getFormElements()) {
 				try {
 					Field field = clazz.getDeclaredField(formElement.getName());
-					field.setAccessible(true);
-					field.set(po, formElement.value());
+					if (formElement.check()) {
+						field.setAccessible(true);
+						field.set(po, formElement.value());
+					} else {
+						if (result == true) {
+							formElement.setFocusable(true);
+							formElement.requestFocus();
+						}
+						result = false;
+					}
 				} catch (NoSuchFieldException e) {
 					Log.w("buildPO", "buildPO-NoSuchField:" + formElement.getName());
 				}
@@ -208,6 +246,7 @@ public class ViewManager {
 		} catch (Exception e) {
 			Log.e("buildPO", "buildPO err:", e);
 		}
+		return result;
 	}
 	
 	public static void cache(Object key, IGTextAble textAble, TextAbleR textAbleR) {

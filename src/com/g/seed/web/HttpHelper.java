@@ -14,6 +14,7 @@ import org.apache.http.client.methods.HttpGet;
 import org.apache.http.client.methods.HttpPost;
 import org.apache.http.client.methods.HttpRequestBase;
 import org.apache.http.client.params.HttpClientParams;
+import org.apache.http.entity.mime.MultipartEntity;
 import org.apache.http.impl.client.DefaultHttpClient;
 import org.apache.http.params.BasicHttpParams;
 import org.apache.http.params.HttpConnectionParams;
@@ -67,7 +68,7 @@ public class HttpHelper {
 	public HttpResponse get(String action, String params) throws ClientProtocolException, IOException {
 		return client.execute(new HttpGet(this.location + action + params));
 	}
-
+	
 	public String execute(HttpRequestBase requestBase) throws ClientProtocolException, IOException, ParseException, StatusCodeException {
 		return new StringHttpResultProcessor(client.execute(requestBase)).exe();
 	}
@@ -83,7 +84,7 @@ public class HttpHelper {
 	public HttpResponse post(String action, Object... poarray) throws ClientProtocolException, IOException {
 		return post(action, poarray != null ? this.potool.change(poarray) : null);
 	}
-
+	
 	public HttpResponse post(String action, int timeout, Object... poarray) throws ClientProtocolException, IOException {
 		HttpPost httpRequest = new HttpPost(this.location + action);
 		if (poarray != null)
@@ -99,6 +100,14 @@ public class HttpHelper {
 		HttpPost httpRequest = new HttpPost(this.location + action);
 		if (params != null)
 			httpRequest.setEntity(new UrlEncodedFormEntity(params, "UTF-8"));
+		return client.execute(httpRequest);
+	}
+	
+	public HttpResponse postMultipart(String action, Object... poarray) throws ClientProtocolException, IOException {
+		MultipartEntity multipartEntity = new MultipartEntity();
+		this.potool.changeToMultipart(multipartEntity, poarray);
+		HttpPost httpRequest = new HttpPost(this.location + action);
+		httpRequest.setEntity(multipartEntity);
 		return client.execute(httpRequest);
 	}
 	

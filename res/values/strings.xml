@@ -1,5 +1,5 @@
 <resources>
 
     <string name="app_name">Seed</string>
-
+    <string name="noEmptyRex">((.){1,})</string>
 </resources>
