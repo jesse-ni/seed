@@ -15,15 +15,15 @@ import android.app.Activity;
 import android.util.Log;
 import android.view.View;
 
-public class Injector
-{
+public class Injector {
 	private static final String TAG = Injector.class.getName();
 	private TargetProxy proxy;
 	private EL el;
 	private ReflectTool reflectTool;
+	private StringBuffer logsb = new StringBuffer();
+	private final String ln = "\r\n";
 	
-	public Injector(Activity target, Params params)
-	{
+	public Injector(Activity target, Params params) {
 		this(target, new EL(params));
 	}
 	
@@ -34,7 +34,7 @@ public class Injector
 	public Injector(View target, Params params) {
 		this(target, new EL(params));
 	}
-
+	
 	public Injector(View target, Object data) {
 		this(target, new EL(new Params(data)));
 	}
@@ -43,25 +43,22 @@ public class Injector
 		this(TargetProxyFactory.proxy(target), el);
 	}
 	
-	public Injector(TargetProxy proxy, EL el)
-	{
+	public Injector(TargetProxy proxy, EL el) {
 		this.reflectTool = new ReflectTool();
 		
 		this.proxy = proxy;
 		this.el = el;
 		
-		this.reflectTool.addClazzFilter(new ReflectTool.IClazzFilter()
-		{
+		this.reflectTool.addClazzFilter(new ReflectTool.IClazzFilter() {
 			@Override
 			public boolean exe(Class<?> clazz) {
-				Log.i("", "Class:" + clazz.getName() + " >> " + clazz.isAnnotationPresent(Autowired.class));
 				return clazz.isAnnotationPresent(Autowired.class);
 			}
 		});
 	}
 	
-	public void injectData(){
-		Log.i(TAG, "---> " + this.proxy.real().getClass().getName());
+	public void injectData() {
+		logsb.append(this.proxy.real().getClass().getName() + " {");
 		reflectTool.catchAttr(this.proxy.real(), new IFieldFilter() {
 			
 			@Override
@@ -74,67 +71,69 @@ public class Injector
 			}
 			
 		});
+		Log.i(TAG, logsb.append(ln).append("}").toString());
 	}
 	
 	public void execute() {
-		Log.i(TAG, "---> " + this.proxy.real().getClass().getName());
+		logsb.append(this.proxy.real().getClass().getName() + " {");
 		reflectTool.catchAttr(this.proxy.real(), new IFieldFilter() {
 			
 			@Override
-			public boolean exe(FieldFiltrateInfo filtrateInfo) throws IllegalAccessException, IllegalArgumentException,
-					NoSuchFieldException, ClassNotFoundException, NoSuchMethodException {
-				injectValue(filtrateInfo);
-				bingOnClickListener(filtrateInfo.clazz, filtrateInfo.obj, filtrateInfo.field);
+			public boolean exe(FieldFiltrateInfo fi) throws Exception {
+				injectValue(fi);
+				Object value = fi.field.get(proxy.real());
+				String strValue = "@null";
+				if (value != null) {
+					strValue = isPrimitive(fi.field.getType()) ? String.valueOf(value) : "@" + fi.field.getType().getSimpleName();
+				}
+				logsb.append(ln).append("    " + fi.field.getName() + " = " + strValue);
+				if (fi.field.isAnnotationPresent(OnClick.class)) {
+					logsb.append(" onClick(\"" + fi.field.getAnnotation(OnClick.class).value()).append("\")");
+					bindOnClickListener(fi.clazz, fi.obj, fi.field);
+				}
 				return true;
 			}
 			
 		});
-		reflectTool.catchMethod(this.proxy.real(), new IMethodFilter(){
-
+		reflectTool.catchMethod(this.proxy.real(), new IMethodFilter() {
+			
 			@Override
 			public boolean exe(final MethodFiltrateInfo info) throws Exception {
-				if(info.method.isAnnotationPresent(OnClick2.class)){
+				if (info.method.isAnnotationPresent(OnClick2.class)) {
+					final String name = info.method.getName();
+					logsb.append(ln).append("    set on click listener " + name + " to ");
 					OnClick2 oc2 = info.method.getAnnotation(OnClick2.class);
-					final int[] idArray = oc2.value();
-					for (int id : idArray) {
-						bindMethod(proxy.real(), proxy.findViewById(id), info.method);
+					for (int id : oc2.value()) {
+						bindOnClickListener2(proxy.real(), proxy.findViewById(id), info.method);
+						logsb.append(id + " ");
 					}
 				}
 				return true;
 			}
 			
 		});
+		Log.i(TAG, logsb.append(ln).append("}").toString());
 		if (this.proxy.real() instanceof InjectFinishCallBack)
 			((InjectFinishCallBack) this.proxy.real()).ready();
 	}
 	
 	private void injectValue(FieldFiltrateInfo fi) throws IllegalAccessException, IllegalArgumentException,
-			NoSuchFieldException, ClassNotFoundException
-	{
+			NoSuchFieldException, ClassNotFoundException {
 		fi.field.setAccessible(true);
 		if (fi.field.isAnnotationPresent(InjectView.class)) {
 			injectViewToField(fi);
 		} else if (fi.field.isAnnotationPresent(Inject.class)) {
 			injectDataToField(fi);
 		}
-		
-		Object value = fi.field.get(this.proxy.real());
-		String strValue;
-		if (value == null) {
-			strValue = "@null";
-		} else {
-			strValue = isPrimitive(fi.field.getType()) ? String.valueOf(value) : "@" + fi.field.getType().getSimpleName();
-		}
-		Log.i(TAG, "  -" + fi.field.getName() + " = " + strValue);
 	}
-
+	
 	private void injectViewToField(FieldFiltrateInfo fi) throws IllegalAccessException {
 		InjectView injectView = fi.field.getAnnotation(InjectView.class);
 		Integer id = getInjectViewID(injectView, fi.field);
 		if (id != null)
 			fi.field.set(this.proxy.real(), getView(id, injectView.create()));
 	}
-
+	
 	private void injectDataToField(FieldFiltrateInfo fi) throws IllegalAccessException {
 		Inject inject = fi.field.getAnnotation(Inject.class);
 		if (!inject.value().equals("")) {
@@ -176,18 +175,16 @@ public class Injector
 		return val;
 	}
 	
-	private Integer getInjectViewID(InjectView injectView, Field field)
-	{
+	private Integer getInjectViewID(InjectView injectView, Field field) {
 		if (injectView.value() > 0)
 			return injectView.value();
 		if (injectView.create())
 			return SrcDynamicAccess.getLayout(field.getName());
-		
+			
 		return SrcDynamicAccess.getID(field.getName());
 	}
 	
-	private View getView(int id, boolean create)
-	{
+	private View getView(int id, boolean create) {
 		if (create) {
 			GIntent gintent = new GIntent(this.proxy.getContext(), id);
 			return new ViewManager(gintent, this.el).create();
@@ -195,30 +192,24 @@ public class Injector
 		return this.proxy.findViewById(id);
 	}
 	
-	private void bingOnClickListener(Class<?> clazz, Object obj, Field field)
-			throws IllegalAccessException, IllegalArgumentException, NoSuchMethodException
-	{
-		if (field.isAnnotationPresent(OnClick.class)) {
-			OnClick annOnClick = field.getAnnotation(OnClick.class);
-			field.setAccessible(true);
-			Object fieldValue = field.get(this.proxy.real());
-			if (!(fieldValue instanceof View))
-				throw new RuntimeException("bingOnClickListener on non-view!!!");
-			View view = (View) fieldValue;
-			if (!(annOnClick.value().equals(""))) {
-				final Method method = clazz.getDeclaredMethod(annOnClick.value(), View.class);
-				method.setAccessible(true);
-				bindMethod(obj, view, method);
-			}
+	private void bindOnClickListener(Class<?> clazz, Object obj, Field field) throws Exception {
+		OnClick annOnClick = field.getAnnotation(OnClick.class);
+		field.setAccessible(true);
+		Object fieldValue = field.get(this.proxy.real());
+		if (!(fieldValue instanceof View))
+			throw new RuntimeException("bindOnClickListener on non-view!!!");
+		View view = (View) fieldValue;
+		if (!(annOnClick.value().equals(""))) {
+			final Method method = clazz.getDeclaredMethod(annOnClick.value(), View.class);
+			method.setAccessible(true);
+			bindOnClickListener2(obj, view, method);
 		}
 	}
 	
-	private void bindMethod(final Object obj, View view, final Method method) {
-		view.setOnClickListener(new View.OnClickListener()
-		{
+	private void bindOnClickListener2(final Object obj, View view, final Method method) {
+		view.setOnClickListener(new View.OnClickListener() {
 			@Override
-			public void onClick(View view)
-			{
+			public void onClick(View view) {
 				try {
 					method.invoke(obj, view);
 				} catch (Exception e) {

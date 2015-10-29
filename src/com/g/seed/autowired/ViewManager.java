@@ -179,12 +179,12 @@ public class ViewManager {
 	
 	public static void submit(View view, IForm form, final AsyncResultListener l) {
 		if (buildPO(view, form)) {
-			Service.getInstance().asyncPost(form.getAction(), form, l);
+			Service.getInstance().asyncSubmit(form, l);
 		}
 	}
-
+	
 	public static void submit(IForm form, final AsyncResultListener l) {
-		Service.getInstance().asyncPost(form.getAction(), form, l);
+		Service.getInstance().asyncSubmit(form, l);
 	}
 	
 	public static boolean buildPO(Activity activity, Object po) {
@@ -224,10 +224,10 @@ public class ViewManager {
 	
 	public static boolean buildPO(View view, Object po) {
 		boolean result = true;
-		try {
-			Class<?> clazz = po.getClass();
-			for (IFormElement formElement : getExtendedAttribute(view).getFormElements()) {
-				try {
+		Class<?> clazz = po.getClass();
+		for (IFormElement formElement : getExtendedAttribute(view).getFormElements()) {
+			try {
+				if (formElement.getName() != null) {
 					Field field = clazz.getDeclaredField(formElement.getName());
 					if (formElement.check()) {
 						field.setAccessible(true);
@@ -239,12 +239,12 @@ public class ViewManager {
 						}
 						result = false;
 					}
-				} catch (NoSuchFieldException e) {
-					Log.w("buildPO", "buildPO-NoSuchField:" + formElement.getName());
+				}else {
+					Log.w("buildPO", "formElement " + formElement.toString() + " has not name!!!");
 				}
+			} catch (Exception e) {
+				Log.w("buildPO", formElement.toString(), e);
 			}
-		} catch (Exception e) {
-			Log.e("buildPO", "buildPO err:", e);
 		}
 		return result;
 	}

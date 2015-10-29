@@ -23,6 +23,9 @@ import org.apache.http.params.HttpParams;
 import com.g.seed.web.exception.StatusCodeException;
 import com.g.seed.web.resultprocessor.StreamHttpResultProcessor;
 import com.g.seed.web.resultprocessor.StringHttpResultProcessor;
+import com.g.seed.web.service.Enctype;
+import com.g.seed.web.service.HttpMethod;
+import com.g.seed.web.service.IForm;
 
 public class HttpHelper {
 	private String location;
@@ -56,12 +59,11 @@ public class HttpHelper {
 		return (new StringHttpResultProcessor(get(action, param)).exe());
 	}
 	
-	public String get(String action, Object po) throws ParseException, ClientProtocolException, StatusCodeException, IOException {
+	public String get(String action, Object po) throws Exception {
 		return (new StringHttpResultProcessor(geta(action, po)).exe());
 	}
 	
-	public HttpResponse geta(String action, Object po) throws ParseException, ClientProtocolException, StatusCodeException,
-			IOException {
+	public HttpResponse geta(String action, Object po) throws Exception {
 		return get(action, this.potool.changeStr(po));
 	}
 	
@@ -83,6 +85,32 @@ public class HttpHelper {
 	
 	public HttpResponse post(String action, Object... poarray) throws ClientProtocolException, IOException {
 		return post(action, poarray != null ? this.potool.change(poarray) : null);
+	}
+
+	public HttpResponse submit(IForm form) throws Exception {
+		return submit(buildHttpRequest(form));
+	}
+	
+	public HttpRequestBase buildHttpRequest(IForm form) throws Exception {
+		if (form.getMethod() == HttpMethod.POST) {
+			final HttpPost httpPost = new HttpPost(this.location + form.getAction());
+			if (form.getEnctype() == Enctype.multipart) {
+				MultipartEntity multipartEntity = new MultipartEntity();
+				this.potool.changeToMultipart(multipartEntity, form);
+				httpPost.setEntity(multipartEntity);
+			} else if (form.getEnctype() == Enctype.urlencoded) {
+				httpPost.setEntity(new UrlEncodedFormEntity(this.potool.change(form), "UTF-8"));
+			} else {
+				throw new RuntimeException("unsupport enctype!");
+			}
+			return httpPost;
+		} else {
+			return new HttpGet(this.location + form.getAction() + this.potool.changeStr(form));
+		}
+	}
+	
+	public HttpResponse submit(HttpRequestBase httpRequestBase) throws Exception{
+		return client.execute(httpRequestBase);
 	}
 	
 	public HttpResponse post(String action, int timeout, Object... poarray) throws ClientProtocolException, IOException {

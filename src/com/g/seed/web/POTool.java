@@ -142,7 +142,7 @@ public class POTool {
 	}
 	
 	private StringBuffer toStringHead(Object po) {
-		return new StringBuffer(po.getClass().getSimpleName()).append(":").append("{\n");
+		return new StringBuffer(po.getClass().getSimpleName()).append(" ").append("{\n");
 	}
 	
 	public IEncryptor getEncryptor() {

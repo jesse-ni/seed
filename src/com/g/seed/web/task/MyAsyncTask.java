@@ -6,7 +6,6 @@ import java.io.StringWriter;
 
 import org.apache.http.HttpResponse;
 import org.apache.http.ParseException;
-import org.apache.http.client.ClientProtocolException;
 
 import com.g.seed.util.LOGTAG;
 import com.g.seed.web.exception.StatusCodeException;
@@ -79,7 +78,7 @@ public abstract class MyAsyncTask extends AsyncTask<String, Integer, Result> {
 		}
 	}
 	
-	protected abstract HttpResponse doRequest() throws ClientProtocolException, IOException;
+	protected abstract HttpResponse doRequest() throws Exception;
 	
 	public void setL(AsyncResultListener l) {
 		this.l = l;

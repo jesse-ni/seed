@@ -24,4 +24,6 @@ public interface IFormElement extends ICheckAble {
 	void setFocusable(boolean focusable);
 	
 	boolean requestFocus();
+	
+	String toString();
 }

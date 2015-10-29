@@ -9,7 +9,6 @@ import org.apache.http.NameValuePair;
 import com.g.seed.autowired.Injector;
 import com.g.seed.autowired.Params;
 import com.g.seed.autowired.ViewManager;
-import com.g.seed.web.service.Enctype;
 import com.g.seed.web.service.IForm;
 import com.g.seed.web.service.Service;
 import com.g.seed.web.task.MyAsyncTask.AsyncResultListener;
@@ -126,11 +125,7 @@ public class ActivityBase extends Activity {
 	
 	public void submit(IForm form, final AsyncResultListener l) {
 		if (buildPO(form)) {
-			if (form.getEnctype().equals(Enctype.urlencoded)) {
-				Service.getInstance().asyncPost(form.getAction(), form, l);
-			}else if (form.getEnctype().equals(Enctype.multipart)) {
-				Service.getInstance().asyncPostMultipart(form.getAction(), form, l);
-			}
+			Service.getInstance().asyncSubmit(form, l);
 		}
 	}
 	

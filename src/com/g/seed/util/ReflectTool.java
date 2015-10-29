@@ -39,8 +39,7 @@ public class ReflectTool {
 		if (obj == null)
 			throw new ReflectToolException("the object want to filtered can not be null");
 		for (Class<?> clazz = obj.getClass(); checkClazz(clazz); clazz = clazz.getSuperclass()) {
-			Field[] fields = clazz.getDeclaredFields();
-			for (Field field : fields) {
+			for (Field field : clazz.getDeclaredFields()) {
 				try {
 					field.setAccessible(true);
 					Object value = field.get(obj);

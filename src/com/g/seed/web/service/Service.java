@@ -33,10 +33,25 @@ public class Service {
 		return instance;
 	}
 	
-	public HttpResponse syncPost(final String action, final Object po)
-			throws ClientProtocolException, IOException {
+	public HttpResponse syncPost(final String action, final Object po) throws ClientProtocolException, IOException {
 		log(po);
 		return httpHelper.post(action, po);
+	}
+	
+	public HttpResponse syncSubmit(final IForm form) throws Exception {
+		log(form);
+		return httpHelper.submit(form);
+	}
+	
+	public void asyncSubmit(final IForm form, final AsyncResultListener l) {
+		new MyAsyncTask(httpHelper.getLocation() + form.getAction(), l) {
+			
+			@Override
+			protected HttpResponse doRequest() throws Exception {
+				return syncSubmit(form);
+			}
+			
+		}.execute();
 	}
 	
 	public void asyncPost(final String action, final Object po, final AsyncResultListener l) {
