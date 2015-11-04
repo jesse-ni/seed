@@ -3,6 +3,7 @@ package com.g.seed.autowired;
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
 
+import com.g.seed.MyLogger;
 import com.g.seed.textresolver.EL;
 import com.g.seed.util.ReflectTool;
 import com.g.seed.util.ReflectTool.FieldFiltrateInfo;
@@ -10,9 +11,9 @@ import com.g.seed.util.ReflectTool.IFieldFilter;
 import com.g.seed.util.ReflectTool.IMethodFilter;
 import com.g.seed.util.ReflectTool.MethodFiltrateInfo;
 import com.g.seed.util.SrcDynamicAccess;
+import com.g.seed.util.Util;
 
 import android.app.Activity;
-import android.util.Log;
 import android.view.View;
 
 public class Injector {
@@ -71,7 +72,9 @@ public class Injector {
 			}
 			
 		});
-		Log.i(TAG, logsb.append(ln).append("}").toString());
+		if (proxy.real().getClass().isAnnotationPresent(Autowired.class)) {
+			MyLogger.i(TAG, logsb.append(ln).append("}").toString());
+		}
 	}
 	
 	public void execute() {
@@ -84,7 +87,7 @@ public class Injector {
 				Object value = fi.field.get(proxy.real());
 				String strValue = "@null";
 				if (value != null) {
-					strValue = isPrimitive(fi.field.getType()) ? String.valueOf(value) : "@" + fi.field.getType().getSimpleName();
+					strValue = Util.isPrimitive(fi.field.getType()) ? String.valueOf(value) : "@" + fi.field.getType().getSimpleName();
 				}
 				logsb.append(ln).append("    " + fi.field.getName() + " = " + strValue);
 				if (fi.field.isAnnotationPresent(OnClick.class)) {
@@ -112,7 +115,10 @@ public class Injector {
 			}
 			
 		});
-		Log.i(TAG, logsb.append(ln).append("}").toString());
+		
+		if (proxy.real().getClass().isAnnotationPresent(Autowired.class)) {
+			MyLogger.i(TAG, logsb.append(ln).append("}").toString());
+		}
 		if (this.proxy.real() instanceof InjectFinishCallBack)
 			((InjectFinishCallBack) this.proxy.real()).ready();
 	}
@@ -137,7 +143,7 @@ public class Injector {
 	private void injectDataToField(FieldFiltrateInfo fi) throws IllegalAccessException {
 		Inject inject = fi.field.getAnnotation(Inject.class);
 		if (!inject.value().equals("")) {
-			if (isPrimitive(fi.field.getType())) {
+			if (Util.isPrimitive(fi.field.getType())) {
 				String val = this.el.exe(inject.value());
 				fi.field.set(this.proxy.real(), valueAdapt(fi.field, val));
 			} else {
@@ -145,14 +151,6 @@ public class Injector {
 			}
 		} else {
 			fi.field.set(this.proxy.real(), this.el.analyze2(fi.field.getName()));
-		}
-	}
-	
-	private boolean isPrimitive(Class<?> clz) {
-		try {
-			return ((Class<?>) clz.getField("TYPE").get(null)).isPrimitive();
-		} catch (Exception e) {
-			return clz.equals(String.class);
 		}
 	}
 	

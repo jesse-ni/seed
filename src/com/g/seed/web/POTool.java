@@ -5,10 +5,12 @@ import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 
+import org.apache.http.HttpMessage;
 import org.apache.http.NameValuePair;
-import org.apache.http.entity.mime.MultipartEntity;
+import org.apache.http.entity.mime.MultipartEntityBuilder;
 import org.apache.http.message.BasicNameValuePair;
 
+import com.g.seed.SeedContext;
 import com.g.seed.util.ReflectTool;
 import com.g.seed.util.ReflectTool.FieldFiltrateInfo;
 import com.g.seed.util.ReflectTool.IFieldFilter;
@@ -20,15 +22,10 @@ import com.g.seed.web.fieldFilter.FieldFilterOptional;
 import com.g.seed.web.service.IParamPository;
 
 public class POTool {
-	public POTool(IEncryptor encryptor) {
-		setEncryptor(encryptor);
-	}
-	
 	public POTool() {}
 	
-	private IEncryptor encryptor;
 	private ReflectTool.IFieldFilter fieldFilterOptional = new FieldFilterOptional();
-	private ReflectTool.IFieldFilter fieldFilterEncrypt;
+	private ReflectTool.IFieldFilter fieldFilterEncrypt = new FieldFilterEncrypt(SeedContext.encryptor);
 	private ReflectTool.IFieldFilter fieldFilterName = new FieldFilterName();
 	private ReflectTool reflectTool;
 	
@@ -52,12 +49,16 @@ public class POTool {
 	 */
 	public List<NameValuePair> change(Object... poarray) {
 		final List<NameValuePair> result = new ArrayList<NameValuePair>();
-		changeParam(new ParamPository1(result), poarray);
+		changeParam(new ParamPositoryForPost(result), poarray);
 		return result;
 	}
 	
-	public void changeToMultipart(final MultipartEntity multipartEntity, Object... poarray) {
-		changeParam(new ParamPository2(multipartEntity), poarray);
+	public void changeToMultipart(final MultipartEntityBuilder multipartEntityBuilder, Object... poarray) {
+		changeParam(new ParamPositoryForMultipartEntity(multipartEntityBuilder), poarray);
+	}
+	
+	public void putHeaders(HttpMessage httpMessage, Object object) {
+		changeParam(new ParamPositoryHeader(httpMessage), object);
 	}
 	
 	/**
@@ -66,7 +67,7 @@ public class POTool {
 	 */
 	public String changeStr(Object nParamObject) {
 		final StringBuffer result = new StringBuffer();
-		changeParam(new ParamPository3(result), nParamObject);
+		changeParam(new ParamPositoryForGet(result), nParamObject);
 		return result.toString().replaceFirst("&", "?");
 	}
 	
@@ -76,7 +77,7 @@ public class POTool {
 	 */
 	public String toString(Object po) {
 		final StringBuffer result = toStringHead(po);
-		final ParamPository4 paramPository = new ParamPository4(result);
+		final ParamPositoryForDebugInfo paramPository = new ParamPositoryForDebugInfo(result);
 		changeParam(buildUnencryptedReflectTool(paramPository), paramPository, po);
 		return result.append("}").toString();
 	}
@@ -87,14 +88,15 @@ public class POTool {
 	 */
 	public String toStringE(Object po) {
 		final StringBuffer result = toStringHead(po);
-		changeParam(new ParamPository4(result), po);
+		changeParam(new ParamPositoryForDebugInfo(result), po);
 		return result.append("}").toString();
 	}
 	
 	public void changeParam(final IParamPository paramPository, Object... poarray) {
 		changeParam(buildReflectTool(paramPository), paramPository, poarray);
 	}
-
+	
+	/** 将原有的reflectTool给paramPository使用 */
 	public void changeParam2(final IParamPository paramPository, Object... poarray) {
 		changeParam(reflectTool, paramPository, poarray);
 	}
@@ -143,15 +145,6 @@ public class POTool {
 	
 	private StringBuffer toStringHead(Object po) {
 		return new StringBuffer(po.getClass().getSimpleName()).append(" ").append("{\n");
-	}
-	
-	public IEncryptor getEncryptor() {
-		return this.encryptor;
-	}
-	
-	public void setEncryptor(IEncryptor encryptor) {
-		this.encryptor = encryptor;
-		fieldFilterEncrypt = new FieldFilterEncrypt(encryptor);
 	}
 	
 	static abstract interface ICatchAttrListener {

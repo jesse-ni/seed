@@ -18,7 +18,11 @@ public class Util {
 	public static boolean isPrimitive(Class<?> clz) {
 		if (clz == null) { throw new NullPointerException(); }
 		try {
-			final boolean b = clz.equals(String.class) || clz.equals(Date.class) || clz.equals(BigInteger.class) || clz.equals(BigDecimal.class);
+			final boolean b = clz.equals(String.class)
+					|| clz.equals(Date.class)
+					|| clz.equals(BigInteger.class)
+					|| clz.equals(BigDecimal.class)
+					|| clz.isPrimitive();
 			return b ? b : ((Class<?>) clz.getField("TYPE").get(null)).isPrimitive();
 		} catch (Exception e) {
 			return false;

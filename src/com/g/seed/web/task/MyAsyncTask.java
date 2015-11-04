@@ -7,6 +7,7 @@ import java.io.StringWriter;
 import org.apache.http.HttpResponse;
 import org.apache.http.ParseException;
 
+import com.g.seed.MyLogger;
 import com.g.seed.util.LOGTAG;
 import com.g.seed.web.exception.StatusCodeException;
 import com.g.seed.web.result.Result;
@@ -16,7 +17,6 @@ import com.google.gson.JsonElement;
 import com.google.gson.JsonParser;
 
 import android.os.AsyncTask;
-import android.util.Log;
 
 public abstract class MyAsyncTask extends AsyncTask<String, Integer, Result> {
 	private String missionName = String.valueOf(hashCode());
@@ -38,7 +38,7 @@ public abstract class MyAsyncTask extends AsyncTask<String, Integer, Result> {
 	public void cancel() {
 		l.after(null);
 		cancel(true);
-		Log.i(LOGTAG.RequestInfo, "cancel--" + missionName);
+		MyLogger.i(LOGTAG.RequestInfo, "cancel--" + missionName);
 	}
 	
 	@Override
@@ -58,14 +58,14 @@ public abstract class MyAsyncTask extends AsyncTask<String, Integer, Result> {
 	@Override
 	protected final Result doInBackground(String... params) {
 		try {
-			Log.i(LOGTAG.RequestInfo, "request--" + missionName);
+			MyLogger.i(LOGTAG.RequestInfo, "request--" + missionName);
 			Result result = l.onResponse(doRequest());
-			Log.i(LOGTAG.RequestInfo, "response--" + missionName);
+			MyLogger.i(LOGTAG.RequestInfo, "response--" + missionName);
 			Gson gson = new GsonBuilder().setPrettyPrinting().create();
 			JsonParser jp = new JsonParser();
 			JsonElement je = jp.parse(result.printProtype());
 			String prettyJsonStr = gson.toJson(je);
-			Log.i(LOGTAG.RequestInfo, prettyJsonStr);
+			MyLogger.i(LOGTAG.RequestInfo, prettyJsonStr);
 			return result;
 		} catch (Exception e) {
 			StringWriter sw = new StringWriter();
@@ -73,7 +73,7 @@ public abstract class MyAsyncTask extends AsyncTask<String, Integer, Result> {
 			e.printStackTrace(pw);
 			pw.flush();
 			sw.flush();
-			Log.e(LOGTAG.RequestInfo, "exception--" + missionName + "\n" + sw.toString());
+			MyLogger.e(LOGTAG.RequestInfo, "exception--" + missionName + "\n" + sw.toString());
 			return new Result(e);
 		}
 	}

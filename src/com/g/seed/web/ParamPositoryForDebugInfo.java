@@ -12,8 +12,8 @@ import com.g.seed.web.service.IParamPository;
  * @Description: TODO (描述作用)
  * 				
  */
-public class ParamPository4 implements IParamPository {
-	public ParamPository4(StringBuffer params) {
+public class ParamPositoryForDebugInfo implements IParamPository {
+	public ParamPositoryForDebugInfo(StringBuffer params) {
 		this.params = params;
 	}
 	

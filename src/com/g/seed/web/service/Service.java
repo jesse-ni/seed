@@ -1,31 +1,26 @@
 package com.g.seed.web.service;
 
-import java.io.IOException;
-
 import org.apache.http.HttpResponse;
-import org.apache.http.client.ClientProtocolException;
+import org.apache.http.client.config.RequestConfig;
 
+import com.g.seed.MyLogger;
 import com.g.seed.util.LOGTAG;
 import com.g.seed.web.HttpHelper;
-import com.g.seed.web.IEncryptor;
 import com.g.seed.web.POTool;
 import com.g.seed.web.task.MyAsyncTask;
 import com.g.seed.web.task.MyAsyncTask.AsyncResultListener;
 
-import android.util.Log;
-
 public class Service {
-	public Service(String location, IEncryptor myEncryptor) {
-		poTool = new POTool(myEncryptor);
-		httpHelper = new HttpHelper(location, myEncryptor);
+	public Service(String location) {
+		httpHelper = new HttpHelper(location);
 	}
 	
-	protected POTool poTool;
+	protected POTool poTool = new POTool();
 	protected HttpHelper httpHelper;
 	private static Service instance = null;
 	
-	public synchronized static void init(String location, IEncryptor myEncryptor) {
-		instance = new Service(location, myEncryptor);
+	public synchronized static void init(String location) {
+		instance = new Service(location);
 	}
 	
 	public synchronized static Service getInstance() {
@@ -33,14 +28,24 @@ public class Service {
 		return instance;
 	}
 	
-	public HttpResponse syncPost(final String action, final Object po) throws ClientProtocolException, IOException {
-		log(po);
-		return httpHelper.post(action, po);
-	}
-	
-	public HttpResponse syncSubmit(final IForm form) throws Exception {
+	public HttpResponse submit(final IForm form) throws Exception {
 		log(form);
 		return httpHelper.submit(form);
+	}
+	
+	public HttpResponse submit(IForm form, RequestConfig config) throws Exception {
+		log(form);
+		return httpHelper.submit(form, config);
+	}
+	
+	public HttpResponse submit(Object headers, IForm form) throws Exception {
+		log(form);
+		return httpHelper.submit(headers, form);
+	}
+	
+	public HttpResponse submit(Object headers, IForm form, RequestConfig config) throws Exception {
+		log(form);
+		return httpHelper.submit(headers, form, config);
 	}
 	
 	public void asyncSubmit(final IForm form, final AsyncResultListener l) {
@@ -48,49 +53,47 @@ public class Service {
 			
 			@Override
 			protected HttpResponse doRequest() throws Exception {
-				return syncSubmit(form);
+				return submit(form);
 			}
 			
 		}.execute();
 	}
 	
-	public void asyncPost(final String action, final Object po, final AsyncResultListener l) {
-		new MyAsyncTask(httpHelper.getLocation() + action, l) {
+	public void asyncSubmit(final Object headers, final IForm form, final AsyncResultListener l) {
+		new MyAsyncTask(httpHelper.getLocation() + form.getAction(), l) {
 			
 			@Override
-			protected HttpResponse doRequest() throws ClientProtocolException, IOException {
-				return syncPost(action, po);
+			protected HttpResponse doRequest() throws Exception {
+				return submit(headers, form);
 			}
 			
 		}.execute();
 	}
 	
-	public void asyncPostMultipart(final String action, final Object po, final AsyncResultListener l) {
-		new MyAsyncTask(httpHelper.getLocation() + action, l) {
+	public void asyncSubmit(final IForm form, final RequestConfig config, final AsyncResultListener l) {
+		new MyAsyncTask(httpHelper.getLocation() + form.getAction(), l) {
 			
 			@Override
-			protected HttpResponse doRequest() throws ClientProtocolException, IOException {
-				log(po);
-				return httpHelper.postMultipart(action, po);
+			protected HttpResponse doRequest() throws Exception {
+				return submit(form, config);
 			}
 			
 		}.execute();
 	}
 	
-	public void asyncPost(final String action, final Object po, final int timeout, final AsyncResultListener l) {
-		new MyAsyncTask(httpHelper.getLocation() + action, l) {
+	public void asyncSubmit(final Object headers, final IForm form, final RequestConfig config, final AsyncResultListener l) {
+		new MyAsyncTask(httpHelper.getLocation() + form.getAction(), l) {
 			
 			@Override
-			protected HttpResponse doRequest() throws ClientProtocolException, IOException {
-				log(po);
-				return httpHelper.post(action, timeout, new Object[] { po });
+			protected HttpResponse doRequest() throws Exception {
+				return submit(headers, form, config);
 			}
 			
 		}.execute();
 	}
 	
 	private void log(final Object po) {
-		Log.i(LOGTAG.RequestInfo, "param:" + (po != null ? poTool.toString(po) : "no parameter"));
-		Log.i(LOGTAG.RequestInfo, "parae:" + (po != null ? poTool.toStringE(po) : "no parameter"));
+		MyLogger.i(LOGTAG.RequestInfo, "param:" + (po != null ? poTool.toString(po) : "no parameter"));
+		MyLogger.i(LOGTAG.RequestInfo, "parae:" + (po != null ? poTool.toStringE(po) : "no parameter"));
 	}
 }
