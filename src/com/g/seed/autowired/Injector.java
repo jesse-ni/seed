@@ -147,10 +147,10 @@ public class Injector {
 				String val = this.el.exe(inject.value());
 				fi.field.set(this.proxy.real(), valueAdapt(fi.field, val));
 			} else {
-				fi.field.set(this.proxy.real(), this.el.analyze(inject.value()));
+				fi.field.set(this.proxy.real(), this.el.analyzeTag(inject.value()));
 			}
 		} else {
-			fi.field.set(this.proxy.real(), this.el.analyze2(fi.field.getName()));
+			fi.field.set(this.proxy.real(), this.el.analyzeTagContent(fi.field.getName()));
 		}
 	}
 	

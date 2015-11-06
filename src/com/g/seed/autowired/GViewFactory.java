@@ -43,7 +43,7 @@ public class GViewFactory
 			return view;
 		String elStr = getScopeKey(attrs, view);
 		GIntent gintent = new GIntent(view);
-		Params params = new Params(el.analyze(elStr == null ? "${bean}" : elStr));
+		Params params = new Params(el.analyzeTag(elStr == null ? "${bean}" : elStr));
 		gintent.setParams(params);
 		return new ViewManager(gintent).flate();
 	}
