@@ -1,7 +1,10 @@
 /**
  * 
  */
-package com.g.seed.web.service;
+package com.g.seed.web.form;
+
+import com.g.seed.web.service.Enctype;
+import com.g.seed.web.service.HttpMethod;
 
 /**
  * @ClassName: IWebService

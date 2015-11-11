@@ -13,7 +13,7 @@ import com.g.seed.textresolver.GText;
 import com.g.seed.view.IExtendedAttributeOwner;
 import com.g.seed.view.IFormElement;
 import com.g.seed.view.IGTextAble;
-import com.g.seed.web.service.IForm;
+import com.g.seed.web.form.IForm;
 import com.g.seed.web.service.Service;
 import com.g.seed.web.task.MyAsyncTask.AsyncResultListener;
 

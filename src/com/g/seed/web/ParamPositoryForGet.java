@@ -3,7 +3,7 @@
  */
 package com.g.seed.web;
 
-import com.g.seed.web.service.IParamPository;
+import org.apache.http.HttpMessage;
 
 /** 
 * @ClassName: ParamPository1 
@@ -12,8 +12,9 @@ import com.g.seed.web.service.IParamPository;
 * @Description: TODO (描述作用) 
 *  
 */
-public class ParamPositoryForGet implements IParamPository {
-	public ParamPositoryForGet(StringBuffer params) {
+public class ParamPositoryForGet extends ParamPositoryBase {
+	public ParamPositoryForGet(StringBuffer params, HttpMessage httpMessage) {
+		super(httpMessage);
 		this.params = params;
 	}
 	

@@ -12,4 +12,6 @@ package com.g.seed.web.service;
 */
 public interface IParamPository {
 	public void add(String name, Object value);
+
+	void addHeader(String name, Object value);
 }

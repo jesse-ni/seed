@@ -10,6 +10,7 @@ import org.apache.http.ParseException;
 import com.g.seed.MyLogger;
 import com.g.seed.util.LOGTAG;
 import com.g.seed.web.exception.StatusCodeException;
+import com.g.seed.web.result.JsonResult;
 import com.g.seed.web.result.Result;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
@@ -50,7 +51,7 @@ public abstract class MyAsyncTask extends AsyncTask<String, Integer, Result> {
 				l.normalResult(result);
 			} else {
 				l.abnormalResult(result);
-			}
+			} 
 		}
 		l.after(result);
 	}
@@ -62,10 +63,14 @@ public abstract class MyAsyncTask extends AsyncTask<String, Integer, Result> {
 			Result result = l.onResponse(doRequest());
 			MyLogger.i(LOGTAG.RequestInfo, "response--" + missionName);
 			Gson gson = new GsonBuilder().setPrettyPrinting().create();
-			JsonParser jp = new JsonParser();
-			JsonElement je = jp.parse(result.printProtype());
-			String prettyJsonStr = gson.toJson(je);
-			MyLogger.i(LOGTAG.RequestInfo, prettyJsonStr);
+			if (result instanceof JsonResult) {
+				JsonParser jp = new JsonParser();
+				JsonElement je = jp.parse(result.printProtype());
+				String prettyJsonStr = gson.toJson(je);
+				MyLogger.i(LOGTAG.RequestInfo, prettyJsonStr);
+			}else {
+				MyLogger.i(LOGTAG.RequestInfo, result.printProtype());
+			}
 			return result;
 		} catch (Exception e) {
 			StringWriter sw = new StringWriter();

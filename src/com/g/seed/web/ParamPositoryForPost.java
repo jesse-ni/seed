@@ -5,10 +5,9 @@ package com.g.seed.web;
 
 import java.util.List;
 
+import org.apache.http.HttpMessage;
 import org.apache.http.NameValuePair;
 import org.apache.http.message.BasicNameValuePair;
-
-import com.g.seed.web.service.IParamPository;
 
 /** 
 * @ClassName: ParamPository1 
@@ -17,8 +16,9 @@ import com.g.seed.web.service.IParamPository;
 * @Description: TODO (描述作用) 
 *  
 */
-public class ParamPositoryForPost implements IParamPository {
-	public ParamPositoryForPost(List<NameValuePair> params) {
+public class ParamPositoryForPost extends ParamPositoryBase {
+	public ParamPositoryForPost(List<NameValuePair> params, HttpMessage httpMessage) {
+		super(httpMessage);
 		this.params = params;
 	}
 	

@@ -7,6 +7,7 @@ import com.g.seed.MyLogger;
 import com.g.seed.util.LOGTAG;
 import com.g.seed.web.HttpHelper;
 import com.g.seed.web.POTool;
+import com.g.seed.web.form.IForm;
 import com.g.seed.web.task.MyAsyncTask;
 import com.g.seed.web.task.MyAsyncTask.AsyncResultListener;
 
@@ -48,6 +49,71 @@ public class Service {
 		return httpHelper.submit(headers, form, config);
 	}
 	
+	
+	public HttpResponse get(String action, Object po) throws Exception {
+		log(po);
+		return httpHelper.get(action, po);
+	}
+
+	public HttpResponse get(String action, Object po, RequestConfig config) throws Exception {
+		log(po);
+		return httpHelper.get(action, po, config);
+	}
+
+	public HttpResponse post(String action, Object po) throws Exception {
+		log(po);
+		return httpHelper.post(action, po);
+	}
+
+	public HttpResponse post(String action, Object po, RequestConfig config) throws Exception {
+		log(po);
+		return httpHelper.post(action, po, config);
+	}
+	
+	public void asyncGet(final String action, final Object po, final AsyncResultListener l) {
+		new MyAsyncTask(httpHelper.getLocation() + action, l) {
+			
+			@Override
+			protected HttpResponse doRequest() throws Exception {
+				return Service.this.get(action, po);
+			}
+			
+		}.execute();
+	}
+	
+	public void asyncGet(final String action, final Object po, final RequestConfig config, final AsyncResultListener l) {
+		new MyAsyncTask(httpHelper.getLocation() + action, l) {
+			
+			@Override
+			protected HttpResponse doRequest() throws Exception {
+				return Service.this.get(action, po, config);
+			}
+			
+		}.execute();
+	}
+	
+	public void asyncPost(final String action, final Object po, final AsyncResultListener l) {
+		new MyAsyncTask(httpHelper.getLocation() + action, l) {
+			
+			@Override
+			protected HttpResponse doRequest() throws Exception {
+				return Service.this.post(action, po);
+			}
+			
+		}.execute();
+	}
+	
+	public void asyncPost(final String action, final Object po, final RequestConfig config, final AsyncResultListener l) {
+		new MyAsyncTask(httpHelper.getLocation() + action, l) {
+			
+			@Override
+			protected HttpResponse doRequest() throws Exception {
+				return Service.this.post(action, po, config);
+			}
+			
+		}.execute();
+	}
+
 	public void asyncSubmit(final IForm form, final AsyncResultListener l) {
 		new MyAsyncTask(httpHelper.getLocation() + form.getAction(), l) {
 			

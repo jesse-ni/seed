@@ -2,6 +2,7 @@ package com.g.seed.web.resultprocessor;
 
 import java.io.IOException;
 
+import org.apache.http.HttpEntity;
 import org.apache.http.HttpResponse;
 import org.apache.http.ParseException;
 
@@ -18,7 +19,8 @@ public class StreamResultProcessor extends HttpResultProcessor<StreamResult>
 	protected StreamResult normalExe(HttpResponse httpResponse)
 			throws ParseException, IOException
 	{
-		return new StreamResult(httpResponse.getEntity().getContent());
+		final HttpEntity entity = httpResponse.getEntity();
+		return new StreamResult(entity.getContent(), entity.getContentLength());
 	}
 	
 	@Override

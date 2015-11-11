@@ -9,7 +9,7 @@ import org.apache.http.NameValuePair;
 import com.g.seed.autowired.Injector;
 import com.g.seed.autowired.Params;
 import com.g.seed.autowired.ViewManager;
-import com.g.seed.web.service.IForm;
+import com.g.seed.web.form.IForm;
 import com.g.seed.web.service.Service;
 import com.g.seed.web.task.MyAsyncTask.AsyncResultListener;
 

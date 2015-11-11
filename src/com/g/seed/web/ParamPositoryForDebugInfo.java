@@ -23,5 +23,10 @@ public class ParamPositoryForDebugInfo implements IParamPository {
 	public void add(String name, Object value) {
 		params.append("    " + name + " = " + value + "\n");
 	}
+
+	@Override
+	public void addHeader(String name, Object value) {
+		params.append("    @Header " + name + " = " + value + "\n");
+	}
 	
 }

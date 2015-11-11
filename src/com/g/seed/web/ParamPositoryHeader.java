@@ -5,8 +5,6 @@ package com.g.seed.web;
 
 import org.apache.http.HttpMessage;
 
-import com.g.seed.web.service.IParamPository;
-
 /**
  * @ClassName: ParamPository1
  * @author zhigeng.ni
@@ -14,16 +12,14 @@ import com.g.seed.web.service.IParamPository;
  * @Description: TODO (描述作用)
  * 				
  */
-public class ParamPositoryHeader implements IParamPository {
+public class ParamPositoryHeader extends ParamPositoryBase {
 	public ParamPositoryHeader(HttpMessage httpMessage) {
-		this.httpMessage = httpMessage;
+		super(httpMessage);
 	}
-	
-	private HttpMessage httpMessage;
 	
 	@Override
 	public void add(String name, Object value) {
-		httpMessage.addHeader(name, String.valueOf(value));
+		super.addHeader(name, value);
 	}
 	
 }

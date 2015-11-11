@@ -16,6 +16,9 @@ import com.g.seed.util.ReflectTool.FieldFiltrateInfo;
 import com.g.seed.util.ReflectTool.IFieldFilter;
 import com.g.seed.web.fieldFilter.FieldFilterComponent;
 import com.g.seed.web.fieldFilter.FieldFilterEncrypt;
+import com.g.seed.web.fieldFilter.FieldFilterHeader;
+import com.g.seed.web.fieldFilter.FieldFilterHeaders;
+import com.g.seed.web.fieldFilter.FieldFilterIgnore;
 import com.g.seed.web.fieldFilter.FieldFilterMap;
 import com.g.seed.web.fieldFilter.FieldFilterName;
 import com.g.seed.web.fieldFilter.FieldFilterOptional;
@@ -27,15 +30,19 @@ public class POTool {
 	private ReflectTool.IFieldFilter fieldFilterOptional = new FieldFilterOptional();
 	private ReflectTool.IFieldFilter fieldFilterEncrypt = new FieldFilterEncrypt(SeedContext.encryptor);
 	private ReflectTool.IFieldFilter fieldFilterName = new FieldFilterName();
+	private ReflectTool.IFieldFilter fieldFilterIgnore = new FieldFilterIgnore();
 	private ReflectTool reflectTool;
 	
 	public ReflectTool buildReflectTool(IParamPository paramPository) {
 		return reflectTool = new ReflectTool(
+				fieldFilterIgnore,
 				fieldFilterOptional,
 				fieldFilterEncrypt,
 				fieldFilterName,
+				new FieldFilterHeader(paramPository),
 				new FieldFilterMap(paramPository),
-				new FieldFilterComponent(this, paramPository));
+				new FieldFilterComponent(this, paramPository),
+				new FieldFilterHeaders(this, paramPository));
 	}
 	
 	public ReflectTool buildUnencryptedReflectTool(IParamPository paramPository) {
@@ -47,14 +54,14 @@ public class POTool {
 	 * @Title: change @Description: TODO (将参数对象转为Post请求方式的参数列表) @param
 	 *         po @return @return List<NameValuePair> @throws
 	 */
-	public List<NameValuePair> change(Object... poarray) {
+	public List<NameValuePair> change(HttpMessage httpMessage, Object... poarray) {
 		final List<NameValuePair> result = new ArrayList<NameValuePair>();
-		changeParam(new ParamPositoryForPost(result), poarray);
+		changeParam(new ParamPositoryForPost(result, httpMessage), poarray);
 		return result;
 	}
 	
-	public void changeToMultipart(final MultipartEntityBuilder multipartEntityBuilder, Object... poarray) {
-		changeParam(new ParamPositoryForMultipartEntity(multipartEntityBuilder), poarray);
+	public void changeToMultipart(final MultipartEntityBuilder multipartEntityBuilder, HttpMessage httpMessage, Object... poarray) {
+		changeParam(new ParamPositoryForMultipartEntity(multipartEntityBuilder, httpMessage), poarray);
 	}
 	
 	public void putHeaders(HttpMessage httpMessage, Object object) {
@@ -65,9 +72,9 @@ public class POTool {
 	 * @Title: changeStr @Description: TODO (将参数对象转为Get请求方式的字符串参数列表) @param
 	 *         nParamObject @return @return String @throws
 	 */
-	public String changeStr(Object nParamObject) {
+	public String changeStr(HttpMessage httpMessage, Object nParamObject) {
 		final StringBuffer result = new StringBuffer();
-		changeParam(new ParamPositoryForGet(result), nParamObject);
+		changeParam(new ParamPositoryForGet(result, httpMessage), nParamObject);
 		return result.toString().replaceFirst("&", "?");
 	}
 	

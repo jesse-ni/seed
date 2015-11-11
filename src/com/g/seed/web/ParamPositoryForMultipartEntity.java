@@ -6,13 +6,12 @@ package com.g.seed.web;
 import java.io.File;
 
 import org.apache.http.Consts;
+import org.apache.http.HttpMessage;
 import org.apache.http.entity.ContentType;
 import org.apache.http.entity.mime.MultipartEntityBuilder;
 import org.apache.http.entity.mime.content.ContentBody;
 import org.apache.http.entity.mime.content.FileBody;
 import org.apache.http.entity.mime.content.StringBody;
-
-import com.g.seed.web.service.IParamPository;
 
 /**
  * @ClassName: ParamPository1
@@ -21,8 +20,9 @@ import com.g.seed.web.service.IParamPository;
  * @Description: TODO (描述作用)
  * 				
  */
-public class ParamPositoryForMultipartEntity implements IParamPository {
-	public ParamPositoryForMultipartEntity(MultipartEntityBuilder multipartEntityBuilder) {
+public class ParamPositoryForMultipartEntity extends ParamPositoryBase {
+	public ParamPositoryForMultipartEntity(MultipartEntityBuilder multipartEntityBuilder, HttpMessage httpMessage) {
+		super(httpMessage);
 		this.multipartEntityBuilder = multipartEntityBuilder;
 	}
 	
@@ -38,5 +38,4 @@ public class ParamPositoryForMultipartEntity implements IParamPository {
 		}
 		multipartEntityBuilder.addPart(name, contentBody);
 	}
-	
 }

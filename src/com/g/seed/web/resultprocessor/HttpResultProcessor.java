@@ -31,7 +31,7 @@ public abstract class HttpResultProcessor<ResultType>
   public ResultType exe() throws StatusCodeException, ParseException, IOException
   {
     StatusLine statusLine = this.httpResponse.getStatusLine();
-    if (statusLine.getStatusCode() == 200)
+		if (statusLine.getStatusCode() == 200 || statusLine.getStatusCode() == 206)
       return normalExe(this.httpResponse);
     if (statusLine.getStatusCode() == 500)
       throw new ServerException(statusLine, statusCodeExceptionDesc(this.httpResponse));
